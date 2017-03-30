@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>翻牌游戏</title>
+	<style type="text/css">
+		*{margin: 0;padding: 0;}
+		li{list-style-type: none;}
+		.container{width: 660px;margin: 40px auto;position: relative;}
+		.container ul{width: 470px;position: relative;height: 560px;background: #CCCCCC;border: 1px solid #CCCCCC;}
+		.container ul li{width: 150px;height: 180px;transform-style: preserve-3d;transition: all .5s;position: absolute;cursor: pointer;left: 160px;top: 190px;}
+		.container ul li.hover{transform: rotateY(-180deg);}
+		.container ul li.wrong{transform: rotateY(-180deg);}
+		.container ul li span{display: block;width: 100%;height: 180px;line-height: 180px;text-align: center;font-size: 20px;font-weight: bold;color: #CCCCCC;position: absolute;left: 0;top: 0;background: #FFFFFF;}
+		.container ul li span:nth-of-type(1){background: url(images/bg.jpg) no-repeat;background-size: 150px 180px;}
+		.container ul li span:nth-of-type(2){transform: translateZ(-1px);background: url(images/bg2.jpg) no-repeat;background-size: 150px 180px;transform: rotateY(180deg);font-size: 60px;color: #150e9a;}
+		.container ul li.wrong span:nth-of-type(2){box-shadow: 0px 0px 4px 4px #FF0000;color: #FF0000}
+		.container .btns{width: 100px;position: absolute;right: 0;top: 0px;}
+		.container .btns p{width: 100%;height: 40px;line-height: 40px;background: #FF0000;color: #FFFFFF;text-align: center;position: relative;font-size: 16px;}
+		.container .btns p:nth-of-type(2){padding-top: 10px;}
+		
+		.spend{width: 30px;height: 20px;line-height: 20px;position: absolute;right: 4px;opacity: 0;z-index: 10;transition-property: opacity,top;transition-duration:  1s;display: block;font-size: 12px;font-weight: bold;}
+		.container .btns p i:nth-of-type(2){top: 0px;color: #f1f744;}
+		.container .btns p i:nth-of-type(3){top: 18px;color: #4455f7;}
+		/*@keyframes spendMove{
+			0%{opacity: 0;top: 10px;}
+			80%{opacity: 1;top: -4px;}
+		}*/
+		.container .btns p:nth-of-type(1){background: url(images/bg3.jpg) no-repeat;background-size: 100px 60px;color: #FF0000;font-weight: bold;height: 60px;line-height: 60px;}
+		.container .btns button{width: 100%;height: 40px;line-height: 40px;background: #CCCCCC;color: #FFFFFF;margin-top: 10px;border: none;}	
+		.container .btns button:hover{background: #555555;cursor: pointer;}	
+		.container .btns em{display: block;width: 100px;height: 140px;transform-style: preserve-3d;transition: all .5s;cursor: pointer;margin-top: 20px;position: relative;}
+		.container .btns em.hover{transform: rotateY(-180deg);}
+		.container .btns em span{display: block;width: 100px;height: 140px;line-height: 140px;text-align: center;font-size: 30px;font-weight: bold;color: red;position: absolute;left: 0;top: 0;}
+		.container .btns em span:nth-of-type(1){background: url(images/bg.jpg) no-repeat;background-size: 100px 140px;}
+		.container .btns em span:nth-of-type(2){transform: translateZ(-1px);background: #FF0000;transform: rotateY(180deg);background: url(images/bg2.jpg) no-repeat;background-size: 100px 140px;}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="btns">
+			<p>第一关</p>
+			<p>分数：<i class="scores">0</i><i class="spend">+1</i><i class="spend">-1</i></p>
+			<button>开始游戏</button>
+			<em class="findme">
+				<span></span>
+				<span>1</span>
+			</em>
+		</div>
+		<ul>
+			<li>
+				<span></span>
+				<span></span>
+			</li>
+			<li>
+				<span></span>
+				<span></span>
+			</li>
+			<li>
+				<span></span>
+				<span></span>
+			</li>
+			<li>
+				<span></span>
+				<span></span>
+			</li>
+			<li>
+				<span></span>
+				<span></span>
+			</li>
+			<li>
+				<span></span>
+				<span></span>
+			</li>
+			<li>
+				<span></span>
+				<span></span>
+			</li>
+			<li>
+				<span></span>
+				<span></span>
+			</li>
+			<li>
+				<span></span>
+				<span></span>
+			</li>
+		</ul>
+	</div>
+	<script type="text/javascript">
+		var beginGame = document.querySelector("button");
+		var oUl = document.querySelector("ul");
+		var lis = document.querySelectorAll("li");
+		var aCards = Array.from(lis);
+		var findMe = document.querySelector(".findme");
+		var scores = document.querySelector(".scores");
+		var spend = document.querySelectorAll(".spend");
+		//积分
+		var scord = 2; 
+		var aPos0 = [
+			{'x':0,'y':0},{'x':1,'y':0},{'x':2,'y':0},
+			{'x':0,'y':1},{'x':1,'y':1},{'x':2,'y':1},
+			{'x':0,'y':2},{'x':1,'y':2},{'x':2,'y':2}
+		];
+		//存放坐标，将中间一张放在最后
+		var aPos = [
+			{'x':0,'y':0},{'x':1,'y':0},{'x':2,'y':0},
+			{'x':0,'y':1},{'x':2,'y':1},{'x':0,'y':2},
+			{'x':1,'y':2},{'x':2,'y':2},{'x':1,'y':1}
+		];
+		var zindex = 9;
+		//随机的对比值
+		var randomVal = 0;
+		//当前点击li中对应的数字
+		var curVal = 0;
+		//分数
+		var score = 1;
+		//发完牌
+		var onOff = false;
+		//下一局
+		var next = true;
+		//通过展示的时间来设置难度,初始为1s
+		var showTime = 1000;
+		//初始发牌
+		for(var i=0;i<lis.length;i++){
+			lis[i].querySelectorAll('span')[1].innerHTML = i+1;
+			lis[i].className = "hover";
+		}
+		init();		
+		//开始游戏
+		beginGame.onclick = function(){
+			if(next){
+				next = false;
+				//重置加分减分的位置
+				resetEffect(spend[0] ,0);
+				resetEffect(spend[1] ,18);
+				//收牌，洗牌，发牌
+				collectCard();
+			}
+		}
+		//翻牌 判断结果是否正确并做相应的处理
+		for(var i=0;i<lis.length;i++){
+			lis[i].onclick = function(){
+				if(onOff){
+					onOff = false;
+					this.className = "hover";
+					curVal = parseInt(this.querySelectorAll("span")[1].innerHTML);
+					//判断正误加减分
+					if(randomVal == curVal){
+						score ++;
+						showTime -= 100;
+						scoreEffect(spend[0] ,18);
+						// 下一局开关打开
+						next = true;
+					}else{
+						score --;
+						scoreEffect(spend[1] ,0);
+						//揭晓正确图片所在的位置
+						setTimeout(function(){
+							for(var j=0;j<lis.length;j++){
+								var temp = parseInt(lis[j].querySelectorAll("span")[1].innerHTML)
+								if(temp == randomVal){
+									lis[j].className = "wrong";
+								}
+							}
+						},1000);
+						setTimeout(function(){
+							//判断游戏是否结束，
+							if(score <= 0){
+								alert("GAME OVER");
+								score = 1;
+								showTime = 1000;
+								scores.innerHTML = score;
+							}
+							// 下一局开关打开
+							next = true;
+						},2000);
+					}
+					//显示分数
+					setTimeout(function(){
+						scores.innerHTML = score;
+					},900);
+				}
+			}
+		}		
+		//初始化
+		function init(){
+			var num = lis.length;
+			scores.innerHTML = score;
+			//初始渲染页面
+			var timer1 = setInterval(function(){
+				num--;
+				if(num<=0){
+					clearInterval(timer1);
+				}
+				lis[num].style.left = aPos0[num].x * 160 + 'px';
+				lis[num].style.top = aPos0[num].y * 190 + 'px';
+			},50);
+		}
+		//收牌
+		function collectCard(){
+			cOnOff = false;
+			var timer2;
+			findMe.className = "";
+			//将牌合上
+			for(var i=0;i<lis.length;i++){
+				lis[i].className = "";
+			}
+			aCards = Array.from(lis);
+			//收集
+			var num = 0;
+			timer2 = setInterval(function(){
+				lis[num].style.left = (10 + 150) + 'px';
+				lis[num].style.top = (10 + 180) + 'px';
+				num++;
+				if(num>=lis.length){
+					clearInterval(timer2);
+					lis = document.querySelectorAll("li");
+					aCards = Array.from(lis);
+					sortCard()
+					dealCard()
+				}
+			},100);
+		}
+		//洗牌
+		function sortCard(){
+			//将牌顺序打乱
+			aCards.sort(function(){
+				return Math.random() - 0.5;
+			});
+			//将牌层叠起来，并设置层级
+			for(var i=0;i<aCards.length;i++){
+				aCards[i].style.zIndex = i;
+			}
+		}
+		//发牌
+		function dealCard(){
+			/*重新将牌渲染到页面*/
+			var timer;
+			var num2 = 0;
+			var current;
+			clearInterval(timer);
+			timer = setInterval(function(){
+				current = aCards.pop();
+				current.style.left = aPos[num2].x * 160 + 'px';
+				current.style.top = aPos[num2].y * 190 + 'px';
+				num2 ++;
+				if(num2>=lis.length){
+					clearInterval(timer);
+					chooseCard();
+				}
+			},500);
+		}
+		//让玩家看牌的位置，并显示出玩家要找到的牌
+		function chooseCard(){
+			console.log(showTime);//这里的时间不变
+			setTimeout(function(){
+				for(var i=0;i<lis.length;i++){
+					lis[i].className = "hover";
+				}
+			},showTime);
+			setTimeout(function(){
+				for(var i=0;i<lis.length;i++){
+					lis[i].className = "";
+				}
+			},showTime+1000);
+			setTimeout(function(){
+				randomVal = parseInt(Math.random()*8 + 1);
+				findMe.querySelectorAll("span")[1].innerHTML = randomVal;
+				findMe.className = "hover";
+				//玩家选择牌的开关打开
+				onOff = true;
+			},showTime+2000);
+		}
+		//加分减分效果
+		function scoreEffect(obj ,topVal){
+			obj.style.top = topVal + "px";
+			obj.style.opacity =1;
+			setTimeout(function(){
+				obj.style.opacity = "0";
+			},900);
+		}
+		//重置加分减分效果的位置
+		function resetEffect(obj ,topVal){
+			obj.style.opacity = 0;
+			obj.style.top = topVal + "px";
+		}
+	</script>
+</body>
+</html>
