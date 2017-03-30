@@ -90,12 +90,15 @@
 		var beginGame = document.querySelector("button");
 		var oUl = document.querySelector("ul");
 		var lis = document.querySelectorAll("li");
-		var aCards = Array.from(lis);
 		var findMe = document.querySelector(".findme");
 		var scores = document.querySelector(".scores");
 		var spend = document.querySelectorAll(".spend");
+		var gate = document.querySelector(".btns p");
+		//将li集合转化为数组
+		var aCards = Array.from(lis);
 		//积分
-		var scord = 2; 
+		var scord = 2;
+		//每个位置的坐标
 		var aPos0 = [
 			{'x':0,'y':0},{'x':1,'y':0},{'x':2,'y':0},
 			{'x':0,'y':1},{'x':1,'y':1},{'x':2,'y':1},
@@ -107,6 +110,7 @@
 			{'x':0,'y':1},{'x':2,'y':1},{'x':0,'y':2},
 			{'x':1,'y':2},{'x':2,'y':2},{'x':1,'y':1}
 		];
+		//设置层级
 		var zindex = 9;
 		//随机的对比值
 		var randomVal = 0;
@@ -118,7 +122,7 @@
 		var onOff = false;
 		//下一局
 		var next = true;
-		//通过展示的时间来设置难度,初始为1s
+		//通过展示的时间来设置难度,初始为1000ms
 		var showTime = 1000;
 		//初始发牌
 		for(var i=0;i<lis.length;i++){
@@ -147,10 +151,16 @@
 					//判断正误加减分
 					if(randomVal == curVal){
 						score ++;
-						showTime -= 100;
-						scoreEffect(spend[0] ,18);
-						// 下一局开关打开
-						next = true;
+						showTime -= 200;
+						scoreEffect(spend[0] ,18,function(){
+							// 下一局开关打开
+							next = true;
+							if(showTime <= 0){
+								//开启下一关
+								alert("下一关");
+								gate.innerHTML = "第二关";
+							}
+						});
 					}else{
 						score --;
 						scoreEffect(spend[1] ,0);
@@ -227,7 +237,7 @@
 			aCards.sort(function(){
 				return Math.random() - 0.5;
 			});
-			//将牌层叠起来，并设置层级
+			//将牌层叠起来，并设置层级，这样每次发牌就是最顶上的一张牌
 			for(var i=0;i<aCards.length;i++){
 				aCards[i].style.zIndex = i;
 			}
@@ -246,12 +256,12 @@
 				num2 ++;
 				if(num2>=lis.length){
 					clearInterval(timer);
-					chooseCard();
+					chooseCard(showTime);
 				}
 			},500);
 		}
 		//让玩家看牌的位置，并显示出玩家要找到的牌
-		function chooseCard(){
+		function chooseCard(showTime){
 			console.log(showTime);//这里的时间不变
 			setTimeout(function(){
 				for(var i=0;i<lis.length;i++){
@@ -272,11 +282,12 @@
 			},showTime+2000);
 		}
 		//加分减分效果
-		function scoreEffect(obj ,topVal){
+		function scoreEffect(obj ,topVal,callback){
 			obj.style.top = topVal + "px";
 			obj.style.opacity =1;
 			setTimeout(function(){
 				obj.style.opacity = "0";
+				callback && typeof callback == "function" && callback();
 			},900);
 		}
 		//重置加分减分效果的位置
